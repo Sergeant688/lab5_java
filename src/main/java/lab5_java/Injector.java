@@ -4,43 +4,59 @@ import java.io.FileInputStream;
 import java.lang.reflect.Field;
 import java.util.Properties;
 
-public class Injector 
+public class Injector
 {
-    
-    public <T> T inject(T object) 
+
+    private Properties properties;
+
+    public Injector()
     {
-        try 
+        this("config.properties");
+    }
+
+    public Injector(String propertiesFileName) 
+    {
+        properties = new Properties();
+        try (FileInputStream file = new FileInputStream(propertiesFileName)) 
         {
-            FileInputStream file = new FileInputStream("config.properties");
-            Properties properties = new Properties();
             properties.load(file);
+        }
+        catch (Exception ex) 
+        {
+            throw new RuntimeException("Ошибка при загрузке properties", ex);
+        }
+    }
 
-            Class<?> clazz = object.getClass();
-            Field[] fields = clazz.getDeclaredFields();
+    public <T> T inject(T object)
+    {
+        Class<?> clazz = object.getClass();
+        Field[] fields = clazz.getDeclaredFields();
 
-            for (Field field : fields) 
+        for (Field field : fields)
+        {
+            if (field.isAnnotationPresent(AutoInjectable.class))
             {
-                if (field.isAnnotationPresent(AutoInjectable.class)) 
+                String interfaceName = field.getType().getName();
+                String сlassName = properties.getProperty(interfaceName);
+
+                if (сlassName != null)
                 {
-                    String interfaceName = field.getType().getName();
-                    String implClassName = properties.getProperty(interfaceName);
-                    
-                    if (implClassName != null) 
+                    try
                     {
-                        Object instance = Class.forName(implClassName).newInstance();
-                        
+                        Class<?> implClass = Class.forName(сlassName);
+                        Object instance = implClass.getDeclaredConstructor().newInstance();
+
                         field.setAccessible(true);
                         field.set(object, instance);
+                    }
+                    catch (Exception e)
+                    {
+                        System.err.println("Ошибка инъекции для поля: " + field.getName());
+                        e.printStackTrace();
                     }
                 }
             }
         }
-        
-        catch (Exception e) 
-        {
-            System.out.println("Ошибка инъекции: " + e.getMessage());
-        }
-        
         return object;
     }
 }
