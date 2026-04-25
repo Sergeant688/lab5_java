@@ -4,16 +4,27 @@ import java.io.FileInputStream;
 import java.lang.reflect.Field;
 import java.util.Properties;
 
+/**
+ * Класс, реализующий механизм внедрения зависимостей.
+ */
 public class Injector
 {
-
     private Properties properties;
 
+    /**
+     * Конструктор по умолчанию.
+     * Инициализирует Injector с использованием файла настроек "config.properties" по умолчанию.
+     */
     public Injector()
     {
         this("config.properties");
     }
 
+    /**
+     * Конструктор с параметром.
+     * * @param propertiesFileName путь к файлу настроек конфигурации
+     * @throws RuntimeException если файл не найден или произошла ошибка при чтении
+     */
     public Injector(String propertiesFileName) 
     {
         properties = new Properties();
@@ -27,6 +38,14 @@ public class Injector
         }
     }
 
+    /**
+     * Метод анализирует переданный объект и внедряет зависимости в его поля,
+     * которые помечены аннотацией {@link AutoInjectable}.
+     *
+     * @param object объект, в который необходимо внедрить зависимости
+     * @param <T> тип обрабатываемого объекта
+     * @return исходный объект с проинициализированными полями
+     */
     public <T> T inject(T object)
     {
         Class<?> clazz = object.getClass();

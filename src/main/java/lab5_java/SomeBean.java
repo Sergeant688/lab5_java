@@ -1,5 +1,8 @@
 package lab5_java;
 
+/**
+ * Класс, содержащий поля для автоматического внедрения зависимостей.
+ */
 public class SomeBean 
 {
     @AutoInjectable
@@ -8,6 +11,9 @@ public class SomeBean
     @AutoInjectable
     private SomeOtherInterface field2;
 
+    /**
+     * Метод для проверки работоспособности внедренных зависимостей.
+     */
     public void foo() 
     {
         field1.doSomething();
